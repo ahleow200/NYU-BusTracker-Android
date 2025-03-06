@@ -156,6 +156,19 @@ public class Stop implements Comparable<Stop> {
         }
     }
 
+    /**
+     * Retrieves a list of related Stop objects forming a family.
+     * 
+     * This method collects and returns an ArrayList of Stop objects that are related
+     * to the current Stop. The family includes:
+     * - All child stops
+     * - The parent stop (if it exists)
+     * - The opposite stop of the parent (if it exists)
+     * - The opposite stop of the current stop (if it exists)
+     * - The current stop itself
+     * 
+     * @return An ArrayList containing all the Stop objects in the family
+     */
     public ArrayList<Stop> getFamily() {
         ArrayList<Stop> result = new ArrayList<>(childStops);
         if (parent != null) {
@@ -175,6 +188,16 @@ public class Stop implements Comparable<Stop> {
         return childStops;
     }
 
+    /**
+     * Sets various values for a bus stop, including name, location, ID, and associated routes.
+     * This method also updates the BusManager with the new stop information.
+     * 
+     * @param mName The name of the bus stop
+     * @param mLat The latitude of the bus stop's location
+     * @param mLng The longitude of the bus stop's location
+     * @param mID The unique identifier for the bus stop
+     * @param mRoutes An array of route IDs that this bus stop is part of
+     */
     public void setValues(String mName, String mLat, String mLng, String mID, String[] mRoutes) {
         if (name.equals("")) name = cleanName(mName);
         if (loc == null) loc = new LatLng(Double.parseDouble(mLat), Double.parseDouble(mLng));
@@ -210,6 +233,12 @@ public class Stop implements Comparable<Stop> {
         return false;
     }
 
+    /**
+     * Checks if a route with the given name exists in the list of routes.
+     * 
+     * @param name The name of the route to search for
+     * @return true if a route with the given name is found, false otherwise
+     */
     public boolean hasRouteByName(String name) {
         if (name.trim().isEmpty()) return false;
         for (Route r : routes) {
@@ -218,6 +247,13 @@ public class Stop implements Comparable<Stop> {
         return false;
     }
 
+    /**
+     * Retrieves all routes associated with this stop, including routes from child stops,
+     * parent's child stops (excluding this stop), and the opposite stop (if any).
+     * 
+     * @return An ArrayList of Route objects containing all unique routes associated
+     *         with this stop and its related stops.
+     */
     public ArrayList<Route> getRoutes() {
         ArrayList<Route> result = new ArrayList<>(routes);
         for (Stop child : childStops) {
@@ -265,6 +301,13 @@ public class Stop implements Comparable<Stop> {
         return id;
     }
 
+    /**
+     * Adds a Time object to the times collection, organizing times by route.
+     * If the route doesn't exist in the collection, it creates a new ArrayList
+     * for that route before adding the Time object.
+     * 
+     * @param t The Time object to be added to the collection
+     */
     public void addTime(Time t) {
         if (times.get(t.getRoute()) == null) times.put(t.getRoute(), new ArrayList<Time>());
         times.get(t.getRoute()).add(t);
@@ -274,6 +317,13 @@ public class Stop implements Comparable<Stop> {
         return times;
     }
 
+    /**
+     * Retrieves a list of times for a specified route, including times from child stops.
+     * 
+     * @param route The route identifier for which to retrieve times
+     * @return A list of Time objects representing all times for the specified route,
+     *         including times from child stops
+     */
     public List<Time> getTimesOfRoute(String route) {
         List<Time> result = times.get(route);
         for (Stop childStop : childStops) {
@@ -298,6 +348,15 @@ public class Stop implements Comparable<Stop> {
         this.name = name;
     }
 
+    /**
+     * Retrieves a list of routes connecting the current stop to the specified end stop.
+     * 
+     * This method finds all available routes that start from the current stop and reach the given end stop.
+     * It compares the routes available at both the start and end stops to determine the connecting routes.
+     * 
+     * @param endStop The destination stop to which routes are being searched
+     * @return A list of Route objects representing the available routes connecting the current stop to the end stop
+     */
     public List<Route> getRoutesTo(Stop endStop) {
         Stop startStop = this;
         ArrayList<Route> startRoutes = startStop.getUltimateParent().getRoutes();        // All the routes leaving the start stop.
@@ -311,6 +370,15 @@ public class Stop implements Comparable<Stop> {
         return availableRoutes;
     }
 
+    /**
+     * Retrieves a sorted list of times to reach the specified end stop.
+     * 
+     * This method compares the routes of the current stop with the routes of the end stop,
+     * and collects all the times for matching routes. The resulting list is then sorted.
+     * 
+     * @param endStop The destination stop to which times are calculated
+     * @return A sorted List of Time objects representing the times to reach the end stop
+     */
     public List<Time> getTimesTo(Stop endStop) {
         List<Route> startRoutes = getRoutes();
         List<Route> endRoutes = endStop.getRoutes();
@@ -324,10 +392,22 @@ public class Stop implements Comparable<Stop> {
         return result;
     }
 
+    /**
+     * Checks if this stop is connected to the given stop.
+     * 
+     * @param stop The stop to check for connection
+     * @return true if there is at least one route connecting this stop to the given stop, false otherwise
+     */
     public boolean isConnectedTo(Stop stop) {
         return stop != null && !this.getRoutesTo(stop).isEmpty();
     }
 
+    /**
+     * Calculates the number of stops between this stop and the given stop along their shared route.
+     * 
+     * @param stop The destination stop to calculate the distance to
+     * @return The number of stops between this stop and the given stop, or Integer.MAX_VALUE if there is no shared route or if the input is null
+     */
     public int distanceTo(Stop stop) {
         if (stop == null) return Integer.MAX_VALUE;
         List<Route> routes = getRoutesTo(stop);
