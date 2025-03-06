@@ -45,11 +45,22 @@ public class Time implements Comparable<Time> {
         timeOfWeek = getCurrentTimeOfWeek();
     }
 
+    /**
+     * Returns the current time in New York timezone.
+     * 
+     * @param calendar The Calendar object to be used for time calculation
+     * @return A Time object representing the current hour and minute in New York timezone
+     */
     public static Time getCurrentTime(Calendar calendar) {
         calendar.setTimeZone(TimeZone.getTimeZone("America/New_York"));
         return new Time(calendar.get(Calendar.HOUR_OF_DAY), calendar.get(Calendar.MINUTE));
     }
 
+    /**
+     * Gets the current time using the default system calendar.
+     * 
+     * @return A Time object representing the current time
+     */
     public static Time getCurrentTime() {
         return getCurrentTime(Calendar.getInstance());
 
@@ -57,6 +68,21 @@ public class Time implements Comparable<Time> {
 
     // compare is used to sort the list of times being checked for the "nextBusTime" in MainActivity.
     // Return a negative number if Time1 is before, positive number if time2 is before, and 0 otherwise.
+    /**
+     * Compares this Time object with another Time object for order.
+     * 
+     * This method implements the compareTo method from the Comparable interface.
+     * It first compares the time of week, then the hour and minute, and finally
+     * checks if either time represents the current time (indicated by a null route).
+     * 
+     * @param time2 The Time object to be compared with this object
+     * @return A negative integer, zero, or a positive integer as this object
+     *         is less than, equal to, or greater than the specified object.
+     *         -1 if this Time is before time2 or represents the current time,
+     *         0 if the times are exactly the same (including time of week),
+     *         1 if this Time is after time2 or time2 represents the current time.
+     * @throws NullPointerException if the specified object is null
+     */
     @Override
     public int compareTo(@NonNull Time time2) {
         // timeOfWeek is an enum. ordinal() returns the rank of the given TimeOfWeek.
@@ -80,6 +106,14 @@ public class Time implements Comparable<Time> {
         return this.getTimeOfWeek().ordinal() - time2.getTimeOfWeek().ordinal();
     }
 
+    /**
+     * Gets the current time of week based on the day in New York time zone.
+     * 
+     * @return The TimeOfWeek enum representing the current time of week:
+     *         WEEKEND for Saturday or Sunday,
+     *         FRIDAY for Friday,
+     *         WEEKDAY for Monday through Thursday
+     */
     private TimeOfWeek getCurrentTimeOfWeek() {
         Calendar rightNow = Calendar.getInstance();
         rightNow.setTimeZone(TimeZone.getTimeZone("America/New_York"));
@@ -92,6 +126,15 @@ public class Time implements Comparable<Time> {
     }
 
     // Returns a String representation of the time of week this Time is in.
+    /**
+     * Converts the current time of week to its string representation.
+     * 
+     * @return A String representing the time of week. Possible values are:
+     *         "Weekday" for weekdays (excluding Friday),
+     *         "Friday" for Fridays,
+     *         "Weekend" for weekends,
+     *         or an empty string if the time of week is invalid.
+     */
     public String getTimeOfWeekAsString() {
         switch (timeOfWeek) {
             case Weekday:
@@ -110,6 +153,18 @@ public class Time implements Comparable<Time> {
     }
 
     // Return a nice string saying the difference between this time and the argument.
+    /**
+     * Calculates and returns a formatted string representing the time difference until a specified time.
+     * 
+     * This method computes the time difference between the current time (represented by 'this')
+     * and the provided target time 't'. It then formats this difference into a human-readable
+     * string based on various conditions. The method also updates the BusManager's state
+     * regarding whether it's during a safe ride period.
+     * 
+     * @param t The target time to calculate the difference to
+     * @param resources Resources object used to retrieve localized strings
+     * @return A formatted string representing the time difference, or an empty string if the difference cannot be calculated
+     */
     public String getTimeAsStringUntil(Time t, Resources resources) {
         Time difference = this.getTimeAsTimeUntil(t);
         //if (MainActivity.LOCAL_LOGV) Log.v("Time Debugging", "this: " + this.toString() + " | that: " + t.toString());
@@ -164,6 +219,13 @@ public class Time implements Comparable<Time> {
     }
 
     // Return a Time object who represents the difference in time between the two Times.
+    /**
+     * Calculates the time difference between this Time object and the given Time object.
+     * 
+     * @param t The Time object to compare against
+     * @return A new Time object representing the time difference if this Time is before or equal to t,
+     *         or a Time object with 99 hours and 99 minutes if this Time is after t
+     */
     public Time getTimeAsTimeUntil(Time t) {
         if (this.compareTo(t) <= 0) {
             //if (MainActivity.LOCAL_LOGV) Log.v("Time Debugging", this + " is strictly before " + t);
@@ -183,6 +245,12 @@ public class Time implements Comparable<Time> {
         return timeOfWeek;
     }
 
+    /**
+     * Compares this Time object to another object for equality.
+     * 
+     * @param t The object to compare with this Time object
+     * @return true if the specified object is also a Time object and has the same hour, minute, and timeOfWeek values as this object; false otherwise
+     */
     public boolean equals(Object t) {
         if (t instanceof Time) {
             Time time = (Time) t;
@@ -196,6 +264,14 @@ public class Time implements Comparable<Time> {
     }
 
     // Return this Time in 12-hour format.
+    /**
+     * Converts the current hour to its representation in normal time format.
+     * 
+     * This method takes into account whether it's AM or PM and adjusts the hour accordingly.
+     * It handles special cases such as midnight (12 AM) and noon (12 PM).
+     * 
+     * @return The hour in normal time format (1-12)
+     */
     private int getHourInNormalTime() {
         if (hour == 0 && AM) return 12;
         if (hour > 0 && AM) return hour;
